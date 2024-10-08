@@ -1,9 +1,10 @@
 """Create a random sample of speeches for cluster training"""
 
 import random
+from collections.abc import Sequence
 
 import sqlalchemy as sql
-import sqlalchemy.orm as orm
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
 
 
@@ -13,7 +14,7 @@ from config import config
 
 
 @logged
-def get_speeches(session) -> list[int]:
+def get_speeches(session: Session) -> list[int]:
     """`load_data` loads the speeches (length >= minimal length, 
     see config). It returns a list of speech identifiers"""
     length_condition = func.length(
@@ -24,7 +25,7 @@ def get_speeches(session) -> list[int]:
 
 
 @logged
-def create_sample(items: list[int], session: orm.Session) -> list:
+def create_sample(items: Sequence, session: Session):
     """Create a random sample, stored as Sample records"""
     size = round(len(items) * config['SPEECH_CRITERIA']['TRAIN_SIZE'])
     random.seed(1)

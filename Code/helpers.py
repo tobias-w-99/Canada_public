@@ -7,8 +7,9 @@ from collections.abc import Callable
 from datetime import date
 from typing import Generator
 
-import sqlalchemy.orm as orm
+
 import sqlalchemy as sql
+import sqlalchemy.orm as orm
 
 from config import config
 

@@ -2,11 +2,12 @@
 through the name of the speaker"""
 
 from collections import namedtuple
+from collections.abc import Sequence
 from typing import Iterable
 
 from jaro import jaro_winkler_metric as jw
 import sqlalchemy as sql
-import sqlalchemy.orm as orm
+from sqlalchemy.orm import Session
 
 from models import Speech, Personal, SpeechLink
 from helpers import Task, sql_get, logged
@@ -33,7 +34,7 @@ Match = namedtuple('Match', ['name', 'identifier', 'speaker', 'score'])
 # Helper functions -------------------------------------------------------------
 
 
-def join_names(entry: tuple) -> Parl:
+def join_names(entry: Sequence) -> Parl:
     """Join first and last names"""
     return ' '.join(entry[:2])
 
@@ -59,7 +60,7 @@ def mean_jw(first: str, last: str, p: Parl):
 
 
 @logged
-def get_speech_personal(session: orm.Session) -> tuple[list[Parl], list[Speech]]:
+def get_speech_personal(session: Session) -> tuple[list[Parl], list[Speech]]:
     """Query lists of parliamentarians and speakers"""
     p_stmt = sql.select(Personal.first_name,
                         Personal.last_name, Personal.identifier)
@@ -122,7 +123,7 @@ def create_link(speaker: str, p_set: list[Parl]) -> SpeechLink:
 # ------------------------------------------------------------------------------
 
 @logged
-def speech_link_worker(items: tuple[set[str], list[Parl]], session: orm.Session) -> bool:
+def speech_link_worker(items: tuple[set[str], list[Parl]], session: Session) -> bool:
     """Try to create a link to a parliamentarian for each speaker"""
     parliamentarians, speakers = items
     for s in speakers:
@@ -149,7 +150,7 @@ SpeechLinkTask = Task(get_speech_personal, speech_link_worker, SpeechLink)
 #     return grouped_parliamentarians
 
 
-# def query_grouped_speeches(session: orm.Session) -> list[list[Speech]]:
+# def query_grouped_speeches(session: Session) -> list[list[Speech]]:
 #     stmt = sql.select(ParliamentSession)
 #     parliaments: list[ParliamentSession] = [s[0]
 #                                             for s in session.execute(stmt).all()]
@@ -162,7 +163,7 @@ SpeechLinkTask = Task(get_speech_personal, speech_link_worker, SpeechLink)
 #     return grouped_speeches
 
 
-# def get_grouped_speech_personal(parliamentarians, session: orm.Session) -> tuple[list]:
+# def get_grouped_speech_personal(parliamentarians, session: Session) -> tuple[list]:
 #     grouped_parliamentarians = create_grouped_person(parliamentarians)
 #     grouped_speeches = query_grouped_speeches(session)
 #     grouped_speakers = [set(s.speaker_name for s in g)

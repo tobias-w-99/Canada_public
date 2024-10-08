@@ -3,8 +3,8 @@
 
 import pickle
 
-import sqlalchemy as sql
-import sqlalchemy.orm as orm
+from sqlalchemy import Select
+from sqlalchemy.orm import Session
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 
@@ -26,17 +26,17 @@ def inspect_model(model: KMeans, vectorizer: TfidfVectorizer):
 
 
 @logged
-def get_all_speeches(session: orm.Session) -> list[tuple[int, str]]:
+def get_all_speeches(session: Session) -> list[tuple[int, str]]:
     """Obtain list of identifier, text pairs of all Speeches"""
-    stmt = sql.Select(Speech.speech_id, Speech.speech_text)
+    stmt = Select(Speech.speech_id, Speech.speech_text)
     items = sql_get(stmt, session)
     return items
 
 
 @logged
-def get_sample(session: orm.Session) -> tuple[int, str]:
+def get_sample(session: Session) -> tuple[int, str]:
     """Obtain identifier, text pairs for Speeches in the sample"""
-    stmt = sql.Select(Speech.speech_text).where(
+    stmt = Select(Speech.speech_text).where(
         Sample.in_training).join(Sample)
     train_set = sql_get(stmt, session)
     return [ts[0] for ts in train_set]
@@ -79,7 +79,7 @@ TrainTask = Task(get_sample, train_model, None)
 # Prediction ------------------------------------------------------------------
 
 @logged
-def assign_topics(items: tuple[int, str], session: orm.Session):
+def assign_topics(items: tuple[int, str], session: Session):
     """Assigns a topic to every speech, executing `VectorizeTask` and
     `TrainTask` and prompts for inspection"""
     # the setup is the same for predicting and vectorizer fitting

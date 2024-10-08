@@ -21,7 +21,7 @@ def get_ids() -> list:
     return contents
 
 
-def get(identifier) -> dict:
+def get(identifier: str) -> dict:
     """get() requests the web profile from the API using the parliament
     identification key"""
     request_url = config['DATA']['PERSONAL_URL'] + identifier
