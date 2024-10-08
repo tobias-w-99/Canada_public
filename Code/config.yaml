@@ -1,0 +1,201 @@
+DATABASE_URI:  'sqlite+pysqlite:///./Data/Processing/Input/mp.db'
+
+# Limit to MAX_CONCUR_REQ concurrent requests to avoid errors due to server
+# overload (or a DoS attack ;) )
+MAX_CONCUR_REQ: 30
+
+
+FILES: 
+  ID_FILE: './Data/Raw/Link_ID.csv'
+  LOG: './Data/Processing/Log/'
+  VECTORIZER_PATH: './Data/Processing/Output/vectorizer'
+  KMEANS_PATH: './Data/Processing/Output/kmeans'
+  CLUSTER_WORDS: './Data/Processing/Output/cluster_words'
+
+TIME_RANGE:
+  T0: '1930'
+  T1: '1950'
+
+SPEECH_CRITERIA:
+  MATCH_SCORE: 0.97 # minimal score for Jaro-Winkler distance of speaker name
+  # to link to a parliamentarian identifier
+  LENGTH: 1000      # minimal length of speech
+  TRAIN_SIZE: 0.25  # share of speeches used for training set
+  NGRAMS: 2         # number of words grouped together to identify topic
+  CLUSTERS: 10      # number of cluster groups
+  BANNED_WORDS: ['canada', 'minister', 'ministry', 'people', 'hon', 'opposition',
+                'government', 'governor', 'country', 'cent', 'year', 'state', 
+                'question', 'situation', 'legislation', 'year', 'time', 
+                'friend', 'matter', 'mr', 'evidence', 'scheme', 'right', 'way', 
+                'day', 'problem', 'commission', 'allowance', 'session', 
+                'condition', 'policy', 'preference', 'act', 'measure', 
+                'resolution', 'amendment', 'subamendment', 'board', 'case', 'office', 'section', 
+                'part', 'department', 'estimate', 'speaker', 'council', 'month', 
+                'bay', 'conference', 'committment', 'case', 'house', 'member', 
+                'membership', 'men', 'word', 'taken', 'given', 'man', 'far', 
+                'motion', 'fact', 'order', 'report', 'parliament', 'item', 
+                'article', 'ton', 'pound', 'position', 'law', 'reason', 
+                'matter', 'thing', 'point', 'place', 'view', 'administration', 
+                'candidate', 'principle', 'opinion', 'attention', 'election', 
+                'information', 'regard', 'discussion', 'gentlemen', 'action', 
+                'hour', 'reduction', 'increase', 'appointment', 'examination', 
+                'person', 'province', 'party', 'statement', 'bill', 'committee', 
+                'result', 'number', 'effort', 'proposal', 'recommendation',
+                'gentleman', 'ago', 'agreement', 'purpose', 'speech', 'system',
+                'kind', 'course', 'plan', 'group', 'consideration', 
+                'organization', 'appeal', 'quorum', 'secretary', 'mind', 
+                'treaty', 'chairman', 'colleague', 'well', 'week', 'month', 'day', 'year', 
+                'director', 'issue', 'paper', 'list', 'opportunity', 'course',
+                'moment', 'officer', 'figure', 'contribution', 'line', 'basis', 
+                'answer', 'well', 'operation', 'district', 'money', 'price', 
+                'letter', 'respect', 'confidence', 'want', 'conception', 'procedure', 
+                'practice', 'chair', 'conduct', 'approval', 'application',  
+                'rule', 'idea', 'advantage', 'debate', 'deputy', 'hearing', 'use'
+                ]
+# List of banned words (not suitable for analysis, among them formalia (friend, 
+# mr, ...), unspecific words (policy, Canada), units and terms referring to 
+# institutions or judicial expressions (e.g.commission, law or right) and 
+# argumentation fragemtns (reason, evidence))
+  WORD_TYPES: ['NOUN', 'ADV']
+
+
+DATA: 
+  PERSONAL_URL: 'https://lop.parl.ca/ParlinfoWebApi/Person/GetPersonWebProfile/'
+  SPEECH_URL: 'https://lipad.ca/full/'
+  ELECTION_URL: 'https://lop.parl.ca/ParlinfoWebApi/Parliament/GetCandidates'
+  SESSION_URL: 'https://lop.parl.ca/ParlinfowebAPI/Parliament/GetParliamentSessionSittingList'
+  COMMITTEE_KEYWORDS: ['war', 'veteran', 'defence', 'soldier', 
+    'external affair', 'security', 'safety', 'forces', 'army', 'peace', 
+    'terrorism']
+  PROFESSION_KEYWORDS: ['RCMP officer', 'RCMP sergeant', 'ambassador', 
+    'armed forces personnel', 'consul', 'consul general', 'coroner', 
+    'crown prosecutor', 'detective lieutenant', 'diplomat', 'fighter pilot',
+    'foreign service officer', 'international public servant', 'military', 
+    'military officer', 'police chief', 'police officer', 'press attaché', 
+    'reserve', 'reservist', 'safety director', 'soldier']
+  VOTE_SHARE_THRESHOLD: 0.6
+  KEYS:
+    PERS:
+      IDENTIFIER: 'PersonId' #'Person.PersonId'
+      BIRTH_DAY: 'DateOfBirth' #'Person.DateOfBirth'
+      BIRTH_PLACE: 'CityOfBirthEn' #'Person.CityOfBirthEn'
+      PROFESSION: 'ProfessionsEn' #'Person.ProfessionsEn'
+      FIRST_NAME: 'UsedFirstName' #'Person.UsedFirstName'
+      LAST_NAME: 'LastName' #'Person.LastName'
+      MILITARY_EXPERIENCE: ''      
+      # Military experience does not fit in here per sé but is listed for there
+      # is no better alternative; it is handled by the `get_info` method of 
+      # `Personal`
+
+    MEMB:
+        SESSION: 'SessionNumber' #'CommitteeMembership[].SessionNumber'
+        COMPOSITION: 'CompositionTypeLongEn' #'CommitteeMembership[].CompositionTypeLongEn'
+        TYPE: 'CommitteeTypeEn' #'CommitteeMembership[].CommitteeTypeEn'
+        ROLE: 'NameEn' #'CommitteeMembership[].NameEn'
+        ORGANIZATION: 'OrganizationLongEn' #'CommitteeMembership[].OrganizationLongEn'
+        PARTY: 'PartyEn' #'CommitteeMembership[].PartyEn'
+        PARLIAMENT: 'ParliamentNumber' #'CommitteeMembership[].ParliamentNumber'
+
+    ELEC:
+        PARLIAMENT: 'ParliamentNumber' #'Person.ElectionCandidates[].ParliamentNumber'
+        ELECTION_DATE: 'ElectionDate' #'Person.ElectionCandidates[].ElectionDate'
+        ELECTION_TYPE: 'IsGeneral' #'Person.ElectionCandidates[].IsGeneral'
+        CONSTITUENCY: 'ConstituencyEn' #'Person.ElectionCandidates[].ConstituencyEn'
+        PARTY: 'PartyNameEn' #'Person.ElectionCandidates[].PartyNameEn'
+        RESULT: 'ResultLongEn' #'Person.ElectionCandidates[].ResultLongEn'
+        VOTES: 'Votes' #'Person.ElectionCandidates[].Votes'
+
+    EXP:
+        SECTION: 'GroupingTitleEn' #'FederalExperienceList[].GroupingTitleEn'
+        ROLE: 'NameEn' #'FederalExperienceList[].NameEn'
+        ORGANIZATION: 'OrganizationLongEn'  #'FederalExperienceList[].OrganizationLongEn'
+        PARTY: 'PartyEn' #'FederalExperienceList[].PartyEn'
+        START_DATE: 'StartDate' #'FederalExperienceList[].StartDate'
+        END_DATE: 'EndDate' #'FederalExperienceList[].EndDate'
+      
+    ELEC_CAND:
+        PERSON_ID: 'PersonId'
+        ELECTION_ID: 'ElectionId'
+        CONSTITUENCY: 'ConstituencyEn'
+        ELECTION_DATE: 'ElectionDate'
+        PARLIAMENT: 'ParliamentNumber'
+        TYPE: 'IsGeneral'
+        VOTES: 'Votes'
+        RESULT: 'ResultLongEn'
+
+    SPEECH: 
+        SPEECH_ID: 0
+        SPEECH_DATE: 2
+        TOPIC: 7
+        SPEECH_TEXT: 10
+        SPEAKER_PARTY: 11
+        SPEAKER_NAME: 13
+
+    SESSION:
+        SESSION: 'SessionNumber'
+        PARLIAMENT: 'ParliamentNumber'
+        START_DATE: 'StartDate'
+        END_DATE: 'EndDate'
+
+
+TRANSLATIONS: 
+  LATIN1-FRENCH:
+    À: 'Ã€'
+    à: 'Ã\xa0'
+    Â: 'Ã†‚'
+    â: 'Ã,'
+    Æ: 'Ã†'
+    æ: 'Ã¦'
+    Ç: 'Ã‡'
+    ç: 'Ã§'
+    È: 'Ãˆ'
+    è: 'Ã¨'
+    É: 'Ã‰'
+    é: 'Ã©'
+    Ê: 'ÃŠ'
+    ê: 'Ãª'
+    Ë: 'Ã‹'
+    ë: 'Ã«'
+    Î: 'ÃŽ'
+    î: 'Ã®'
+    Ï: 'Ã\u008F'
+    ï: 'Ã¯'
+    Ô: 'Ã”'
+    ô: 'Ã´'
+    Œ: "Å’"
+    œ: 'Å“'
+    Ù: 'Ã™'
+    ù: 'Ã¹'
+    Û: 'Ã›'
+    û: 'Ã»'
+
+  ASCII-FRENCH:
+    À: 'A'
+    à: 'a'
+    Â: 'A'
+    â: 'a,'
+    Æ: 'AE'
+    æ: 'ae'
+    Ç: 'C'
+    ç: 'c'
+    È: 'E'
+    è: 'e'
+    É: 'E'
+    é: 'e'
+    Ê: 'E'
+    ê: 'e'
+    Ë: 'E'
+    ë: 'e'
+    Î: 'I'
+    î: 'i'
+    Ï: 'I'
+    ï: 'i'
+    Ô: 'O'
+    ô: 'l'
+    Œ: "OE"
+    œ: 'oe'
+    Ù: 'U'
+    ù: 'u'
+    Û: 'U'
+    û: 'u'
+

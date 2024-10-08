@@ -1,0 +1,56 @@
+# Project
+/Data
+/Code/tests
+/Presentation
+*.xlsx
+
+# R
+.Rproj.user
+*.Rproj
+.Rhistory
+.RData
+.Ruserdata
+
+# Python
+__pycache__/
+build
+*egg-info
+venv
+.venv
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# poetry
+poetry.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+
+# PyCharm
+.idea/
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.pdf
+*.synctex.gz
